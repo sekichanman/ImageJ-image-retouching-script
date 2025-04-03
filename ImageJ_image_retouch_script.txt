@@ -1,0 +1,51 @@
+//処理を行うフォルダと保存先のフォルダを選択
+showMessage("Select Open Folder");
+openDir = getDirectory("Choose a Directory");
+showMessage("_Select Save Folder");
+saveDir = getDirectory("_Choose a Directory");
+list = getFileList(openDir);
+
+//ファイルの数だけ処理を行う
+for (i=0; i<list.length;i++){
+	if (endsWith(list[i], ".lof") && indexOf(list[i],"Snapshot all") == -1){
+		operation();
+	}
+};
+print("Macro Finished");
+
+//ファイル名の取得
+function operation(){
+open(openDir + list[i]);
+name = getTitle;
+dotIndex = indexOf(name, ".");
+title = substring(name, 0, dotIndex);
+//色ごとに名前を定義
+selectImage(1);
+rename("image1");
+selectImage(2);
+rename("image2");
+selectImage(3);
+rename("image3");
+//明るさ調整
+for (j = 1; j <= 3; j++) {
+	selectImage(j);
+	//run("Brightness/Contrast...");
+	run("Enhance Contrast", "saturated=0.35");
+	run("Apply LUT");
+}
+//色の付加
+selectImage(2);
+run("Green");
+selectImage(3);
+run("Magenta");
+//マージ→RGB画像に変換
+run("Merge Channels...", "c2=[image2] c4=[image1] c6=[image3] create keep");
+run("Stack to RGB");
+//単色画像とマージ画像を一つのstackにまとめる
+run("Images to Stack", "use");
+//モンタージュを作成し、tiffファイルで保存
+run("Make Montage...", "columns=2 rows=2 scale=0.50");
+newname = title+"_analyzed";
+saveAs("Tiff", saveDir + "/" + newname + ".tif");
+run("Close All");
+}
